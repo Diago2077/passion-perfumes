@@ -20,10 +20,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 
-const WHATSAPP_LINK = "https://wa.link/v63z31";
+const WHATSAPP_NUMBER = "595983333313"; // +595 (Paraguay) 0983 333 313
 
-function whatsappLink(msg: string) {
-  return `${WHATSAPP_LINK}?text=${encodeURIComponent(msg)}`;
+function whatsappLink(msg?: string) {
+  const base = `https://wa.me/${WHATSAPP_NUMBER}`;
+  return msg ? `${base}?text=${encodeURIComponent(msg)}` : base;
 }
 
 const navLinks = [
