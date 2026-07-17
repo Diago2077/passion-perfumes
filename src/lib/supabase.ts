@@ -14,6 +14,7 @@ export type Database = {
       products: {
         Row: {
           id: string;
+          code: string | null;
           name: string;
           description: string | null;
           price: number | null;
@@ -25,6 +26,7 @@ export type Database = {
         };
         Insert: {
           id?: string;
+          code?: string | null;
           name: string;
           description?: string | null;
           price?: number | null;

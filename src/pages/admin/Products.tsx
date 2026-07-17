@@ -22,6 +22,7 @@ const CATEGORIES = [
 ];
 
 const EMPTY_FORM: ProductInsert = {
+  code: "",
   name: "",
   description: "",
   price: null,
@@ -51,6 +52,7 @@ export default function AdminProducts() {
   function openEdit(product: Product) {
     setEditing(product);
     setForm({
+      code: product.code ?? "",
       name: product.name,
       description: product.description ?? "",
       price: product.price,
@@ -138,9 +140,15 @@ export default function AdminProducts() {
               <button onClick={closeForm} className="text-muted-foreground hover:text-foreground transition-colors text-xl leading-none">×</button>
             </div>
             <form onSubmit={handleSave} className="p-6 space-y-4">
-              <div className="space-y-1.5">
-                <Label className="text-xs tracking-widest uppercase text-muted-foreground">Nombre *</Label>
-                <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required placeholder="Nombre del producto" />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <Label className="text-xs tracking-widest uppercase text-muted-foreground">Código</Label>
+                  <Input value={form.code ?? ""} onChange={(e) => setForm({ ...form, code: e.target.value })} placeholder="Ej: PP-001" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label className="text-xs tracking-widest uppercase text-muted-foreground">Nombre *</Label>
+                  <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required placeholder="Nombre del producto" />
+                </div>
               </div>
               <div className="space-y-1.5">
                 <Label className="text-xs tracking-widest uppercase text-muted-foreground">Descripción</Label>
@@ -209,6 +217,7 @@ export default function AdminProducts() {
             <thead className="bg-muted/40 border-b border-border">
               <tr>
                 <th className="text-left px-4 py-3 text-xs tracking-widest uppercase text-muted-foreground font-medium">Producto</th>
+                <th className="text-left px-4 py-3 text-xs tracking-widest uppercase text-muted-foreground font-medium hidden lg:table-cell">Código</th>
                 <th className="text-left px-4 py-3 text-xs tracking-widest uppercase text-muted-foreground font-medium hidden md:table-cell">Categoría</th>
                 <th className="text-left px-4 py-3 text-xs tracking-widest uppercase text-muted-foreground font-medium hidden sm:table-cell">Precio</th>
                 <th className="text-left px-4 py-3 text-xs tracking-widest uppercase text-muted-foreground font-medium">Estado</th>
@@ -234,6 +243,9 @@ export default function AdminProducts() {
                         )}
                       </div>
                     </div>
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground font-mono text-xs hidden lg:table-cell">
+                    {product.code ?? "—"}
                   </td>
                   <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">
                     {categoryLabel(product.category)}

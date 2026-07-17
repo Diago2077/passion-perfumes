@@ -75,6 +75,7 @@ const categories = [
 ];
 
 type DisplayProduct = {
+  code: string | null;
   name: string;
   category: string;
   desc: string;
@@ -84,6 +85,7 @@ type DisplayProduct = {
 
 const fallbackProducts: DisplayProduct[] = [
   {
+    code: null,
     name: "Rose Élixir",
     category: "Perfume Femenino",
     desc: "Fragancia floral con notas de rosa damascena, jazmín y sándalo blanco.",
@@ -91,6 +93,7 @@ const fallbackProducts: DisplayProduct[] = [
     img: "https://images.unsplash.com/photo-1595425959632-34f2822322ce?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=400&q=80",
   },
   {
+    code: null,
     name: "Oud Noir",
     category: "Perfume Árabe",
     desc: "Fragancia oriental intensa con oud, ámbar y especias exóticas.",
@@ -98,6 +101,7 @@ const fallbackProducts: DisplayProduct[] = [
     img: "https://images.unsplash.com/photo-1611146264101-358a3b387eee?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=400&q=80",
   },
   {
+    code: null,
     name: "Gentleman Élite",
     category: "Perfume Masculino",
     desc: "Fragancia amaderada con notas de vetiver, cuero y cedro.",
@@ -105,6 +109,7 @@ const fallbackProducts: DisplayProduct[] = [
     img: "https://images.unsplash.com/photo-1598634222670-87c5f558119c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=400&q=80",
   },
   {
+    code: null,
     name: "Gold Velvet",
     category: "Perfume Femenino",
     desc: "Seductor y envolvente, con notas de vainilla, musgo y pétalos de rosa.",
@@ -112,6 +117,7 @@ const fallbackProducts: DisplayProduct[] = [
     img: "https://images.unsplash.com/photo-1594035910387-fea47794261f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=400&q=80",
   },
   {
+    code: null,
     name: "Velvet Rouge",
     category: "Cosméticos",
     desc: "Labial de larga duración con acabado satinado en tonos rojos y nude.",
@@ -119,6 +125,7 @@ const fallbackProducts: DisplayProduct[] = [
     img: "https://images.unsplash.com/photo-1591360236480-4ed861025fa1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=400&q=80",
   },
   {
+    code: null,
     name: "Aqua Fresca",
     category: "Perfume Masculino",
     desc: "Fresco y dinámico, con notas cítricas, menta y madera de roble.",
@@ -219,6 +226,7 @@ export default function Index() {
         if (error || !data || data.length === 0) return;
 
         const mapped: DisplayProduct[] = data.map((p) => ({
+          code: p.code ?? null,
           name: p.name,
           category: CATEGORY_LABELS[p.category ?? ""] ?? p.category ?? "",
           desc: p.description ?? "",
@@ -417,7 +425,14 @@ export default function Index() {
                   </div>
                 </div>
                 <div className="p-5">
-                  <h3 className="font-serif text-xl mb-1">{p.name}</h3>
+                  <div className="flex items-start justify-between gap-2 mb-1">
+                    <h3 className="font-serif text-xl">{p.name}</h3>
+                    {p.code && (
+                      <span className="text-[10px] font-mono text-muted-foreground bg-muted px-2 py-0.5 rounded-sm shrink-0 mt-1">
+                        {p.code}
+                      </span>
+                    )}
+                  </div>
                   <p className="text-xs text-muted-foreground leading-relaxed mb-3">{p.desc}</p>
                   {p.price && <p className="text-sm font-medium mb-4">{p.price}</p>}
                   <a
