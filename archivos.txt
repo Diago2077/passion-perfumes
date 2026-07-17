@@ -1,0 +1,11 @@
+passion-perfumes/
+├── index.html
+├── src/
+│   ├── main.tsx
+│   ├── App.tsx
+│   ├── index.css
+│   └── pages/
+│       └── Index.tsx
+└── convex/
+    ├── schema.ts
+    └── users.ts
