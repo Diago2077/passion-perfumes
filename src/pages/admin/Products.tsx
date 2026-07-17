@@ -57,6 +57,8 @@ export default function AdminProducts() {
   const [categoryFilter, setCategoryFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
   const [featuredFilter, setFeaturedFilter] = useState<"all" | "featured" | "not-featured">("all");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
   const [sortBy, setSortBy] = useState<SortBy>("newest");
 
   const [filterOpen, setFilterOpen] = useState(false);
@@ -74,12 +76,18 @@ export default function AdminProducts() {
   }, []);
 
   const activeFilterCount =
-    (categoryFilter ? 1 : 0) + (statusFilter !== "all" ? 1 : 0) + (featuredFilter !== "all" ? 1 : 0);
+    (categoryFilter ? 1 : 0) +
+    (statusFilter !== "all" ? 1 : 0) +
+    (featuredFilter !== "all" ? 1 : 0) +
+    (dateFrom ? 1 : 0) +
+    (dateTo ? 1 : 0);
 
   function clearFilters() {
     setCategoryFilter("");
     setStatusFilter("all");
     setFeaturedFilter("all");
+    setDateFrom("");
+    setDateTo("");
   }
 
   const filteredProducts = useMemo(() => {
@@ -99,6 +107,14 @@ export default function AdminProducts() {
     }
     if (featuredFilter !== "all") {
       result = result.filter((p) => (featuredFilter === "featured" ? p.featured : !p.featured));
+    }
+    if (dateFrom) {
+      const from = new Date(dateFrom).getTime();
+      result = result.filter((p) => new Date(p.created_at).getTime() >= from);
+    }
+    if (dateTo) {
+      const to = new Date(dateTo).getTime() + 24 * 60 * 60 * 1000 - 1; // end of day
+      result = result.filter((p) => new Date(p.created_at).getTime() <= to);
     }
 
     result = [...result];
@@ -122,14 +138,14 @@ export default function AdminProducts() {
     }
 
     return result;
-  }, [products, search, categoryFilter, statusFilter, featuredFilter, sortBy]);
+  }, [products, search, categoryFilter, statusFilter, featuredFilter, dateFrom, dateTo, sortBy]);
 
   const totalPages = Math.max(1, Math.ceil(filteredProducts.length / PAGE_SIZE));
   const paginatedProducts = filteredProducts.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   useEffect(() => {
     setPage(1);
-  }, [search, categoryFilter, statusFilter, featuredFilter, sortBy]);
+  }, [search, categoryFilter, statusFilter, featuredFilter, dateFrom, dateTo, sortBy]);
 
   useEffect(() => {
     if (page > totalPages) setPage(totalPages);
@@ -208,6 +224,10 @@ export default function AdminProducts() {
 
   function categoryLabel(cat: string | null) {
     return categories.find((c) => c.slug === cat)?.name ?? cat ?? "—";
+  }
+
+  function formatDate(iso: string) {
+    return new Date(iso).toLocaleDateString("es-PY", { day: "2-digit", month: "2-digit", year: "numeric" });
   }
 
   return (
@@ -306,6 +326,27 @@ export default function AdminProducts() {
                       {v === "all" ? "Todos" : v === "featured" ? "Sí" : "No"}
                     </button>
                   ))}
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs tracking-widest uppercase text-muted-foreground">Fecha de creación</Label>
+                <div className="grid grid-cols-2 gap-2">
+                  <Input
+                    type="date"
+                    value={dateFrom}
+                    onChange={(e) => setDateFrom(e.target.value)}
+                    max={dateTo || undefined}
+                    className="text-xs"
+                    aria-label="Desde"
+                  />
+                  <Input
+                    type="date"
+                    value={dateTo}
+                    onChange={(e) => setDateTo(e.target.value)}
+                    min={dateFrom || undefined}
+                    className="text-xs"
+                    aria-label="Hasta"
+                  />
                 </div>
               </div>
               {activeFilterCount > 0 && (
@@ -454,6 +495,7 @@ export default function AdminProducts() {
                 <th className="text-left px-4 py-3 text-xs tracking-widest uppercase text-muted-foreground font-medium hidden lg:table-cell">Código</th>
                 <th className="text-left px-4 py-3 text-xs tracking-widest uppercase text-muted-foreground font-medium hidden md:table-cell">Categoría</th>
                 <th className="text-left px-4 py-3 text-xs tracking-widest uppercase text-muted-foreground font-medium hidden sm:table-cell">Precio</th>
+                <th className="text-left px-4 py-3 text-xs tracking-widest uppercase text-muted-foreground font-medium hidden lg:table-cell">Creado</th>
                 <th className="text-left px-4 py-3 text-xs tracking-widest uppercase text-muted-foreground font-medium">Estado</th>
                 <th className="text-right px-4 py-3 text-xs tracking-widest uppercase text-muted-foreground font-medium">Acciones</th>
               </tr>
@@ -486,6 +528,9 @@ export default function AdminProducts() {
                   </td>
                   <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">
                     {product.price ? `₲ ${product.price.toLocaleString("es-PY")}` : "—"}
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground hidden lg:table-cell">
+                    {formatDate(product.created_at)}
                   </td>
                   <td className="px-4 py-3">
                     <Badge variant={product.active ? "default" : "outline"} className="text-[10px]">
