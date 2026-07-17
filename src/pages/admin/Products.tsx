@@ -156,7 +156,7 @@ export default function AdminProducts() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <Label className="text-xs tracking-widest uppercase text-muted-foreground">Precio (Gs.)</Label>
+                  <Label className="text-xs tracking-widest uppercase text-muted-foreground">Precio (₲)</Label>
                   <Input type="number" value={form.price ?? ""} onChange={(e) => setForm({ ...form, price: e.target.value ? Number(e.target.value) : null })} placeholder="8500" />
                 </div>
                 <div className="space-y-1.5">
@@ -251,7 +251,7 @@ export default function AdminProducts() {
                     {categoryLabel(product.category)}
                   </td>
                   <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">
-                    {product.price ? `$${product.price.toLocaleString("es-PY")}` : "—"}
+                    {product.price ? `₲ ${product.price.toLocaleString("es-PY")}` : "—"}
                   </td>
                   <td className="px-4 py-3">
                     <Badge variant={product.active ? "default" : "outline"} className="text-[10px]">
