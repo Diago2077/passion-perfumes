@@ -19,16 +19,6 @@
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:image" content="https://hercules-cdn.com/file_C16P4Sgny9lWcaa1ibK4GgJr" />
 
-    <script>
-      try {
-        let theme = localStorage.getItem("theme");
-        if (theme === "system" || !theme) {
-          let prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-          theme = prefersDark ? "dark" : "light";
-        }
-        document.documentElement.classList.add(theme);
-      } catch (e) {}
-    </script>
   </head>
   <body>
     <div id="root"></div>
