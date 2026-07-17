@@ -89,7 +89,7 @@ export default function Index() {
           data.forEach((c) => { categoryNameBySlug[c.slug] = c.name; });
 
           setDisplayCategories(
-            data.map((c) => ({
+            data.slice(0, 6).map((c) => ({
               title: c.name,
               img: c.image_url ?? "",
               msg: `Hola! Quisiera consultar sobre ${c.name.toLowerCase()} disponibles.`,
@@ -110,7 +110,7 @@ export default function Index() {
 
         if (error || !data || data.length === 0) return;
 
-        const mapped: DisplayProduct[] = data.map((p) => ({
+        const mapped: DisplayProduct[] = data.slice(0, 6).map((p) => ({
           code: p.code ?? null,
           name: p.name,
           category: categoryNameBySlug[p.category ?? ""] ?? p.category ?? "",
