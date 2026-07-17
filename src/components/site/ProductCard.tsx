@@ -12,7 +12,7 @@ export function ProductCard({ p, delay = 0 }: { p: DisplayProduct; delay?: numbe
       viewport={{ once: true }}
       transition={{ delay, duration: 0.6 }}
     >
-      <div className="relative aspect-square overflow-hidden bg-muted/30 p-4">
+      <div className="relative aspect-square overflow-hidden bg-white p-4">
         <img src={p.img} alt={p.name} className="w-full h-full object-contain transition-transform duration-700 group-hover:scale-105" />
         <div className="absolute top-3 left-3 bg-background/90 text-foreground text-[10px] tracking-widest uppercase px-2.5 py-1 rounded-sm">
           {p.category}
