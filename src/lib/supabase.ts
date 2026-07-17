@@ -57,6 +57,27 @@ export type Database = {
         };
         Update: Partial<Database["public"]["Tables"]["contact_messages"]["Insert"]>;
       };
+      categories: {
+        Row: {
+          id: string;
+          name: string;
+          slug: string;
+          image_url: string | null;
+          position: number;
+          active: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          slug: string;
+          image_url?: string | null;
+          position?: number;
+          active?: boolean;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["categories"]["Insert"]>;
+      };
     };
   };
 };

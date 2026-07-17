@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import { Plus, Pencil, Trash2, Eye, EyeOff, Star, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,25 +9,17 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
 import { supabase, type Database } from "@/lib/supabase";
 import { useProducts } from "@/hooks/useProducts";
+import { useCategories } from "@/hooks/useCategories";
 
 type Product = Database["public"]["Tables"]["products"]["Row"];
 type ProductInsert = Database["public"]["Tables"]["products"]["Insert"];
-
-const CATEGORIES = [
-  { value: "femenino", label: "Perfume Femenino" },
-  { value: "masculino", label: "Perfume Masculino" },
-  { value: "arabe", label: "Perfume Árabe" },
-  { value: "cosmetico", label: "Cosméticos" },
-  { value: "oferta", label: "Oferta" },
-  { value: "novedad", label: "Novedad" },
-];
 
 const EMPTY_FORM: ProductInsert = {
   code: "",
   name: "",
   description: "",
   price: null,
-  category: "femenino",
+  category: "",
   image_url: "",
   featured: false,
   active: true,
@@ -37,6 +30,7 @@ export default function AdminProducts() {
     activeOnly: false,
     featuredOnly: false,
   });
+  const { categories } = useCategories({ activeOnly: false });
 
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
@@ -56,7 +50,7 @@ export default function AdminProducts() {
       name: product.name,
       description: product.description ?? "",
       price: product.price,
-      category: product.category ?? "femenino",
+      category: product.category ?? "",
       image_url: product.image_url ?? "",
       featured: product.featured,
       active: product.active,
@@ -115,7 +109,7 @@ export default function AdminProducts() {
   }
 
   function categoryLabel(cat: string | null) {
-    return CATEGORIES.find((c) => c.value === cat)?.label ?? cat ?? "—";
+    return categories.find((c) => c.slug === cat)?.name ?? cat ?? "—";
   }
 
   return (
@@ -160,14 +154,20 @@ export default function AdminProducts() {
                   <Input type="number" value={form.price ?? ""} onChange={(e) => setForm({ ...form, price: e.target.value ? Number(e.target.value) : null })} placeholder="8500" />
                 </div>
                 <div className="space-y-1.5">
-                  <Label className="text-xs tracking-widest uppercase text-muted-foreground">Categoría</Label>
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs tracking-widest uppercase text-muted-foreground">Categoría</Label>
+                    <Link to="/admin/products/categories" className="text-[11px] text-muted-foreground hover:text-foreground underline">
+                      Gestionar
+                    </Link>
+                  </div>
                   <select
-                    value={form.category ?? "femenino"}
+                    value={form.category ?? ""}
                     onChange={(e) => setForm({ ...form, category: e.target.value })}
                     className="flex h-9 w-full rounded-sm border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                   >
-                    {CATEGORIES.map((c) => (
-                      <option key={c.value} value={c.value}>{c.label}</option>
+                    <option value="" disabled>Elegí una categoría</option>
+                    {categories.map((c) => (
+                      <option key={c.slug} value={c.slug}>{c.name}</option>
                     ))}
                   </select>
                 </div>

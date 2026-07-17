@@ -1,11 +1,12 @@
 import { useEffect } from "react";
 import { Outlet, NavLink, useNavigate } from "react-router-dom";
-import { LayoutDashboard, Package, MessageSquare, LogOut, Sparkles } from "lucide-react";
+import { LayoutDashboard, Package, Tag, MessageSquare, LogOut, Sparkles } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 const navItems = [
   { to: "/admin", label: "Dashboard", icon: LayoutDashboard, end: true },
   { to: "/admin/products", label: "Productos", icon: Package, end: false },
+  { to: "/admin/products/categories", label: "Categorías", icon: Tag, end: false, sub: true },
   { to: "/admin/contacts", label: "Mensajes", icon: MessageSquare, end: false },
 ];
 
@@ -41,13 +42,13 @@ export default function AdminLayout() {
         </div>
 
         <nav className="flex-1 px-3 py-4 space-y-1">
-          {navItems.map(({ to, label, icon: Icon, end }) => (
+          {navItems.map(({ to, label, icon: Icon, end, sub }) => (
             <NavLink
               key={to}
               to={to}
               end={end}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2 rounded-sm text-sm transition-colors ${
+                `flex items-center gap-3 py-2 rounded-sm text-sm transition-colors ${sub ? "ml-4 pl-3 pr-3 border-l border-sidebar-border" : "px-3"} ${
                   isActive
                     ? "bg-sidebar-accent text-sidebar-accent-foreground font-medium"
                     : "text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-accent-foreground"

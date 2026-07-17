@@ -36,7 +36,14 @@ const navLinks = [
   { label: "Contacto", href: "#contacto" },
 ];
 
-const categories = [
+type DisplayCategory = {
+  title: string;
+  subtitle?: string;
+  img: string;
+  msg: string;
+};
+
+const fallbackCategories: DisplayCategory[] = [
   {
     title: "Perfumes Femeninos",
     subtitle: "Florales, dulces y orientales",
@@ -212,10 +219,38 @@ export default function Index() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [contactForm, setContactForm] = useState({ name: "", phone: "", message: "" });
   const [displayProducts, setDisplayProducts] = useState<DisplayProduct[]>(fallbackProducts);
+  const [displayCategories, setDisplayCategories] = useState<DisplayCategory[]>(fallbackCategories);
 
-  // Fetch featured products from Supabase; fall back to hardcoded if empty or error
+  // Fetch active categories (for the "Explorá la colección" mosaic and to label
+  // product categories) and featured products from Supabase. Falls back to
+  // hardcoded data if either fetch fails or comes back empty.
   useEffect(() => {
-    async function loadFeaturedProducts() {
+    async function loadCategoriesAndProducts() {
+      let categoryNameBySlug: Record<string, string> = { ...CATEGORY_LABELS };
+
+      try {
+        const { data, error } = await supabase
+          .from("categories")
+          .select("*")
+          .eq("active", true)
+          .order("position", { ascending: true });
+
+        if (!error && data && data.length > 0) {
+          categoryNameBySlug = {};
+          data.forEach((c) => { categoryNameBySlug[c.slug] = c.name; });
+
+          setDisplayCategories(
+            data.map((c) => ({
+              title: c.name,
+              img: c.image_url ?? "",
+              msg: `Hola! Quisiera consultar sobre ${c.name.toLowerCase()} disponibles.`,
+            }))
+          );
+        }
+      } catch {
+        // silently fall back to hardcoded categories
+      }
+
       try {
         const { data, error } = await supabase
           .from("products")
@@ -229,7 +264,7 @@ export default function Index() {
         const mapped: DisplayProduct[] = data.map((p) => ({
           code: p.code ?? null,
           name: p.name,
-          category: CATEGORY_LABELS[p.category ?? ""] ?? p.category ?? "",
+          category: categoryNameBySlug[p.category ?? ""] ?? p.category ?? "",
           desc: p.description ?? "",
           price: formatPrice(p.price),
           img: p.image_url ?? "",
@@ -237,10 +272,10 @@ export default function Index() {
 
         setDisplayProducts(mapped);
       } catch {
-        // silently fall back to hardcoded data
+        // silently fall back to hardcoded products
       }
     }
-    loadFeaturedProducts();
+    loadCategoriesAndProducts();
   }, []);
 
   async function handleContact(e: React.FormEvent) {
@@ -375,7 +410,7 @@ export default function Index() {
           <h2 className="font-serif text-4xl sm:text-5xl">Explorá la colección</h2>
         </motion.div>
         <div className="grid grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
-          {categories.map((cat, i) => (
+          {displayCategories.map((cat, i) => (
             <motion.a
               key={cat.title}
               href={whatsappLink(cat.msg)}
@@ -392,7 +427,7 @@ export default function Index() {
               <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
               <div className="absolute bottom-0 left-0 right-0 p-4 sm:p-5 text-white">
                 <p className="font-serif text-base sm:text-xl leading-tight mb-1">{cat.title}</p>
-                <p className="text-[10px] sm:text-xs tracking-wider opacity-80 mb-3">{cat.subtitle}</p>
+                {cat.subtitle && <p className="text-[10px] sm:text-xs tracking-wider opacity-80 mb-3">{cat.subtitle}</p>}
                 <span className="text-[10px] tracking-widest uppercase border border-white/50 px-3 py-1 rounded-sm opacity-0 group-hover:opacity-100 transition-opacity">
                   Consultar
                 </span>

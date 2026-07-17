@@ -4,6 +4,7 @@ import NotFound from "./pages/NotFound.tsx";
 import AdminLogin from "./pages/admin/Login.tsx";
 import AdminDashboard from "./pages/admin/Dashboard.tsx";
 import AdminProducts from "./pages/admin/Products.tsx";
+import AdminCategories from "./pages/admin/Categories.tsx";
 import AdminContacts from "./pages/admin/Contacts.tsx";
 import AdminLayout from "./components/admin/AdminLayout.tsx";
 
@@ -20,6 +21,7 @@ export default function App() {
       <Route path="/admin" element={<AdminLayout />}>
         <Route index element={<AdminDashboard />} />
         <Route path="products" element={<AdminProducts />} />
+        <Route path="products/categories" element={<AdminCategories />} />
         <Route path="contacts" element={<AdminContacts />} />
       </Route>
 
