@@ -32,7 +32,7 @@ export function ProductCard({ p, delay = 0 }: { p: DisplayProduct; delay?: numbe
         )}
         <p className="text-xs text-muted-foreground leading-relaxed mb-3 line-clamp-2">{p.desc}</p>
         <div className="mt-auto">
-          {p.price && <p className="text-sm font-medium mb-3">{p.price}</p>}
+          {p.price && <p className="text-[21px] font-medium mb-3">{p.price}</p>}
           <a
             href={whatsappLink(`Hola! Quisiera consultar por el producto: ${p.name}`)}
             target="_blank"
