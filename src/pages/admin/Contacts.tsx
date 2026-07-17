@@ -25,6 +25,7 @@ export default function AdminContacts() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [readFilter, setReadFilter] = useState<"all" | "unread" | "read">("all");
 
   useEffect(() => {
     async function fetchMessages() {
@@ -71,21 +72,29 @@ export default function AdminContacts() {
 
   const filteredMessages = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return messages;
-    return messages.filter(
-      (m) =>
-        m.name.toLowerCase().includes(q) ||
-        m.message.toLowerCase().includes(q) ||
-        (m.phone ?? "").toLowerCase().includes(q)
-    );
-  }, [messages, search]);
+    let result = messages;
+
+    if (readFilter !== "all") {
+      result = result.filter((m) => (readFilter === "read" ? m.read : !m.read));
+    }
+    if (q) {
+      result = result.filter(
+        (m) =>
+          m.name.toLowerCase().includes(q) ||
+          m.message.toLowerCase().includes(q) ||
+          (m.phone ?? "").toLowerCase().includes(q)
+      );
+    }
+
+    return result;
+  }, [messages, search, readFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filteredMessages.length / PAGE_SIZE));
   const paginatedMessages = filteredMessages.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   useEffect(() => {
     setPage(1);
-  }, [search]);
+  }, [search, readFilter]);
 
   useEffect(() => {
     if (page > totalPages) setPage(totalPages);
@@ -97,7 +106,7 @@ export default function AdminContacts() {
         <div>
           <h1 className="font-serif text-3xl mb-1">Mensajes de contacto</h1>
           <p className="text-sm text-muted-foreground">
-            {search ? (
+            {search || readFilter !== "all" ? (
               `${filteredMessages.length} de ${messages.length} mensajes`
             ) : (
               <>
@@ -118,14 +127,33 @@ export default function AdminContacts() {
         )}
       </div>
 
-      <div className="relative mb-6 max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-        <Input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Buscar por nombre, teléfono o mensaje..."
-          className="pl-9"
-        />
+      <div className="flex items-center gap-3 mb-6 flex-wrap">
+        <div className="relative max-w-sm w-full sm:w-auto sm:flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Buscar por nombre, teléfono o mensaje..."
+            className="pl-9"
+          />
+        </div>
+
+        <div className="flex gap-1.5 border border-border rounded-sm p-1">
+          {(["all", "unread", "read"] as const).map((v) => (
+            <button
+              key={v}
+              type="button"
+              onClick={() => setReadFilter(v)}
+              className={`text-xs px-3 py-1.5 rounded-sm transition-colors ${
+                readFilter === v
+                  ? "bg-foreground text-background"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {v === "all" ? `Todos (${messages.length})` : v === "unread" ? `Sin leer (${unreadCount})` : `Leídos (${messages.length - unreadCount})`}
+            </button>
+          ))}
+        </div>
       </div>
 
       {loading ? (
@@ -142,7 +170,9 @@ export default function AdminContacts() {
       ) : filteredMessages.length === 0 ? (
         <div className="text-center py-20 text-muted-foreground">
           <Search className="w-10 h-10 mx-auto mb-3 opacity-30" />
-          <p className="text-sm">Ningún mensaje coincide con "{search}".</p>
+          <p className="text-sm">
+            {search ? `Ningún mensaje coincide con "${search}".` : "No hay mensajes que coincidan con el filtro."}
+          </p>
         </div>
       ) : (
         <div className="space-y-3">

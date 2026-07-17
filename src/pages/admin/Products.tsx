@@ -1,6 +1,9 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { Plus, Pencil, Trash2, Eye, EyeOff, Star, Package, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import {
+  Plus, Pencil, Trash2, Eye, EyeOff, Star, Package, Search,
+  ChevronLeft, ChevronRight, SlidersHorizontal, ArrowUpDown, Check, X,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,6 +18,16 @@ type Product = Database["public"]["Tables"]["products"]["Row"];
 type ProductInsert = Database["public"]["Tables"]["products"]["Insert"];
 
 const PAGE_SIZE = 10;
+
+const SORT_OPTIONS = [
+  { value: "newest", label: "Más recientes" },
+  { value: "oldest", label: "Más antiguos" },
+  { value: "name-asc", label: "Nombre (A-Z)" },
+  { value: "name-desc", label: "Nombre (Z-A)" },
+  { value: "price-asc", label: "Precio (menor a mayor)" },
+  { value: "price-desc", label: "Precio (mayor a menor)" },
+] as const;
+type SortBy = (typeof SORT_OPTIONS)[number]["value"];
 
 const EMPTY_FORM: ProductInsert = {
   code: "",
@@ -41,20 +54,82 @@ export default function AdminProducts() {
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
 
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
+  const [featuredFilter, setFeaturedFilter] = useState<"all" | "featured" | "not-featured">("all");
+  const [sortBy, setSortBy] = useState<SortBy>("newest");
+
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [sortOpen, setSortOpen] = useState(false);
+  const filterRef = useRef<HTMLDivElement>(null);
+  const sortRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (filterRef.current && !filterRef.current.contains(e.target as Node)) setFilterOpen(false);
+      if (sortRef.current && !sortRef.current.contains(e.target as Node)) setSortOpen(false);
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const activeFilterCount =
+    (categoryFilter ? 1 : 0) + (statusFilter !== "all" ? 1 : 0) + (featuredFilter !== "all" ? 1 : 0);
+
+  function clearFilters() {
+    setCategoryFilter("");
+    setStatusFilter("all");
+    setFeaturedFilter("all");
+  }
+
   const filteredProducts = useMemo(() => {
     const q = search.trim().toLowerCase();
-    if (!q) return products;
-    return products.filter(
-      (p) => p.name.toLowerCase().includes(q) || (p.code ?? "").toLowerCase().includes(q)
-    );
-  }, [products, search]);
+    let result = products;
+
+    if (q) {
+      result = result.filter(
+        (p) => p.name.toLowerCase().includes(q) || (p.code ?? "").toLowerCase().includes(q)
+      );
+    }
+    if (categoryFilter) {
+      result = result.filter((p) => p.category === categoryFilter);
+    }
+    if (statusFilter !== "all") {
+      result = result.filter((p) => (statusFilter === "active" ? p.active : !p.active));
+    }
+    if (featuredFilter !== "all") {
+      result = result.filter((p) => (featuredFilter === "featured" ? p.featured : !p.featured));
+    }
+
+    result = [...result];
+    switch (sortBy) {
+      case "oldest":
+        result.reverse();
+        break;
+      case "name-asc":
+        result.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case "name-desc":
+        result.sort((a, b) => b.name.localeCompare(a.name));
+        break;
+      case "price-asc":
+        result.sort((a, b) => (a.price ?? 0) - (b.price ?? 0));
+        break;
+      case "price-desc":
+        result.sort((a, b) => (b.price ?? 0) - (a.price ?? 0));
+        break;
+      // "newest" is the hook's default order (created_at desc); no re-sort needed
+    }
+
+    return result;
+  }, [products, search, categoryFilter, statusFilter, featuredFilter, sortBy]);
 
   const totalPages = Math.max(1, Math.ceil(filteredProducts.length / PAGE_SIZE));
   const paginatedProducts = filteredProducts.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   useEffect(() => {
     setPage(1);
-  }, [search]);
+  }, [search, categoryFilter, statusFilter, featuredFilter, sortBy]);
 
   useEffect(() => {
     if (page > totalPages) setPage(totalPages);
@@ -141,7 +216,9 @@ export default function AdminProducts() {
         <div>
           <h1 className="font-serif text-3xl mb-1">Productos</h1>
           <p className="text-sm text-muted-foreground">
-            {search ? `${filteredProducts.length} de ${products.length} productos` : `${products.length} productos en total`}
+            {search || activeFilterCount > 0
+              ? `${filteredProducts.length} de ${products.length} productos`
+              : `${products.length} productos en total`}
           </p>
         </div>
         <Button onClick={openCreate} className="gap-2">
@@ -150,14 +227,129 @@ export default function AdminProducts() {
         </Button>
       </div>
 
-      <div className="relative mb-6 max-w-sm">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
-        <Input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Buscar por nombre o código..."
-          className="pl-9"
-        />
+      <div className="flex items-center gap-3 mb-6 flex-wrap">
+        <div className="relative max-w-sm w-full sm:w-auto sm:flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+          <Input
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            placeholder="Buscar por nombre o código..."
+            className="pl-9"
+          />
+        </div>
+
+        {/* Filters dropdown */}
+        <div className="relative" ref={filterRef}>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => { setFilterOpen((v) => !v); setSortOpen(false); }}
+            className="gap-2"
+          >
+            <SlidersHorizontal className="w-3.5 h-3.5" />
+            Filtros
+            {activeFilterCount > 0 && (
+              <span className="inline-flex items-center justify-center w-4 h-4 rounded-full bg-foreground text-background text-[10px]">
+                {activeFilterCount}
+              </span>
+            )}
+          </Button>
+          {filterOpen && (
+            <div className="absolute z-40 top-full mt-2 left-0 w-64 bg-card border border-border rounded-sm shadow-lg p-4 space-y-4">
+              <div className="space-y-1.5">
+                <Label className="text-xs tracking-widest uppercase text-muted-foreground">Categoría</Label>
+                <select
+                  value={categoryFilter}
+                  onChange={(e) => setCategoryFilter(e.target.value)}
+                  className="flex h-9 w-full rounded-sm border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                >
+                  <option value="">Todas</option>
+                  {categories.map((c) => (
+                    <option key={c.slug} value={c.slug}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs tracking-widest uppercase text-muted-foreground">Estado</Label>
+                <div className="flex gap-1.5">
+                  {(["all", "active", "inactive"] as const).map((v) => (
+                    <button
+                      key={v}
+                      type="button"
+                      onClick={() => setStatusFilter(v)}
+                      className={`flex-1 text-xs py-1.5 rounded-sm border transition-colors ${
+                        statusFilter === v
+                          ? "bg-foreground text-background border-foreground"
+                          : "border-border text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {v === "all" ? "Todos" : v === "active" ? "Activos" : "Inactivos"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs tracking-widest uppercase text-muted-foreground">Destacado</Label>
+                <div className="flex gap-1.5">
+                  {(["all", "featured", "not-featured"] as const).map((v) => (
+                    <button
+                      key={v}
+                      type="button"
+                      onClick={() => setFeaturedFilter(v)}
+                      className={`flex-1 text-xs py-1.5 rounded-sm border transition-colors ${
+                        featuredFilter === v
+                          ? "bg-foreground text-background border-foreground"
+                          : "border-border text-muted-foreground hover:text-foreground"
+                      }`}
+                    >
+                      {v === "all" ? "Todos" : v === "featured" ? "Sí" : "No"}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              {activeFilterCount > 0 && (
+                <button
+                  type="button"
+                  onClick={clearFilters}
+                  className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <X className="w-3 h-3" />
+                  Limpiar filtros
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Sort dropdown */}
+        <div className="relative" ref={sortRef}>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => { setSortOpen((v) => !v); setFilterOpen(false); }}
+            className="gap-2"
+          >
+            <ArrowUpDown className="w-3.5 h-3.5" />
+            Ordenar
+          </Button>
+          {sortOpen && (
+            <div className="absolute z-40 top-full mt-2 left-0 w-56 bg-card border border-border rounded-sm shadow-lg py-1.5">
+              {SORT_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  type="button"
+                  onClick={() => { setSortBy(opt.value); setSortOpen(false); }}
+                  className="flex items-center justify-between w-full px-3.5 py-2 text-sm text-left hover:bg-muted/50 transition-colors"
+                >
+                  {opt.label}
+                  {sortBy === opt.value && <Check className="w-3.5 h-3.5" />}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Form modal */}
@@ -249,7 +441,9 @@ export default function AdminProducts() {
       ) : filteredProducts.length === 0 ? (
         <div className="text-center py-20 text-muted-foreground">
           <Search className="w-10 h-10 mx-auto mb-3 opacity-30" />
-          <p className="text-sm">Ningún producto coincide con "{search}".</p>
+          <p className="text-sm">
+            {search ? `Ningún producto coincide con "${search}".` : "Ningún producto coincide con los filtros aplicados."}
+          </p>
         </div>
       ) : (
         <div className="border border-border rounded-sm overflow-hidden">
