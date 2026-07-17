@@ -1,5 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import Index from "./pages/Index.tsx";
+import Catalog from "./pages/Catalog.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import AdminLogin from "./pages/admin/Login.tsx";
 import AdminDashboard from "./pages/admin/Dashboard.tsx";
@@ -13,6 +14,7 @@ export default function App() {
     <Routes>
       {/* Public landing page */}
       <Route path="/" element={<Index />} />
+      <Route path="/productos" element={<Catalog />} />
 
       {/* Admin auth */}
       <Route path="/admin/login" element={<AdminLogin />} />
