@@ -435,16 +435,18 @@ export default function Index() {
                     )}
                   </div>
                   <p className="text-xs text-muted-foreground leading-relaxed mb-3">{p.desc}</p>
-                  {p.price && <p className="text-sm font-medium mb-4">{p.price}</p>}
-                  <a
-                    href={whatsappLink(`Hola! Quisiera consultar por el producto: ${p.name}`)}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-auto flex items-center justify-center gap-2 w-full bg-foreground text-background text-xs tracking-wider uppercase py-2.5 rounded-sm hover:opacity-80 transition-opacity cursor-pointer"
-                  >
-                    <MessageCircle className="w-3.5 h-3.5" />
-                    Consultar
-                  </a>
+                  <div className="mt-auto">
+                    {p.price && <p className="text-sm font-medium mb-3">{p.price}</p>}
+                    <a
+                      href={whatsappLink(`Hola! Quisiera consultar por el producto: ${p.name}`)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center justify-center gap-2 w-full bg-foreground text-background text-xs tracking-wider uppercase py-2.5 rounded-sm hover:opacity-80 transition-opacity cursor-pointer"
+                    >
+                      <MessageCircle className="w-3.5 h-3.5" />
+                      Consultar
+                    </a>
+                  </div>
                 </div>
               </motion.div>
             ))}
