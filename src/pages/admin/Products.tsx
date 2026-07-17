@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { Plus, Pencil, Trash2, Eye, EyeOff, Star, Package } from "lucide-react";
+import { Plus, Pencil, Trash2, Eye, EyeOff, Star, Package, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -13,6 +13,8 @@ import { useCategories } from "@/hooks/useCategories";
 
 type Product = Database["public"]["Tables"]["products"]["Row"];
 type ProductInsert = Database["public"]["Tables"]["products"]["Insert"];
+
+const PAGE_SIZE = 10;
 
 const EMPTY_FORM: ProductInsert = {
   code: "",
@@ -36,6 +38,27 @@ export default function AdminProducts() {
   const [editing, setEditing] = useState<Product | null>(null);
   const [form, setForm] = useState<ProductInsert>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+
+  const filteredProducts = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return products;
+    return products.filter(
+      (p) => p.name.toLowerCase().includes(q) || (p.code ?? "").toLowerCase().includes(q)
+    );
+  }, [products, search]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredProducts.length / PAGE_SIZE));
+  const paginatedProducts = filteredProducts.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  useEffect(() => {
+    setPage(1);
+  }, [search]);
+
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [page, totalPages]);
 
   function openCreate() {
     setEditing(null);
@@ -114,15 +137,27 @@ export default function AdminProducts() {
 
   return (
     <div className="p-6 sm:p-8">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-6 gap-4 flex-wrap">
         <div>
           <h1 className="font-serif text-3xl mb-1">Productos</h1>
-          <p className="text-sm text-muted-foreground">{products.length} productos en total</p>
+          <p className="text-sm text-muted-foreground">
+            {search ? `${filteredProducts.length} de ${products.length} productos` : `${products.length} productos en total`}
+          </p>
         </div>
         <Button onClick={openCreate} className="gap-2">
           <Plus className="w-4 h-4" />
           Agregar
         </Button>
+      </div>
+
+      <div className="relative mb-6 max-w-sm">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+        <Input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Buscar por nombre o código..."
+          className="pl-9"
+        />
       </div>
 
       {/* Form modal */}
@@ -211,6 +246,11 @@ export default function AdminProducts() {
           <Package className="w-10 h-10 mx-auto mb-3 opacity-30" />
           <p className="text-sm">No hay productos. ¡Creá el primero!</p>
         </div>
+      ) : filteredProducts.length === 0 ? (
+        <div className="text-center py-20 text-muted-foreground">
+          <Search className="w-10 h-10 mx-auto mb-3 opacity-30" />
+          <p className="text-sm">Ningún producto coincide con "{search}".</p>
+        </div>
       ) : (
         <div className="border border-border rounded-sm overflow-hidden">
           <table className="w-full text-sm">
@@ -225,7 +265,7 @@ export default function AdminProducts() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {products.map((product) => (
+              {paginatedProducts.map((product) => (
                 <tr key={product.id} className="hover:bg-muted/20 transition-colors">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
@@ -294,6 +334,38 @@ export default function AdminProducts() {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {!loading && filteredProducts.length > PAGE_SIZE && (
+        <div className="flex items-center justify-between mt-4">
+          <p className="text-xs text-muted-foreground">
+            Página {page} de {totalPages}
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={page <= 1}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              className="gap-1"
+            >
+              <ChevronLeft className="w-3.5 h-3.5" />
+              Anterior
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={page >= totalPages}
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              className="gap-1"
+            >
+              Siguiente
+              <ChevronRight className="w-3.5 h-3.5" />
+            </Button>
+          </div>
         </div>
       )}
     </div>
