@@ -27,6 +27,7 @@ export default function Catalog() {
     async function load() {
       let categoryNameBySlug: Record<string, string> = { ...CATEGORY_LABELS };
       let chips: CategoryChip[] = Object.entries(CATEGORY_LABELS).map(([slug, name]) => ({ slug, name }));
+      let brandNameBySlug: Record<string, string> = {};
 
       try {
         const { data, error } = await supabase
@@ -47,6 +48,20 @@ export default function Catalog() {
 
       try {
         const { data, error } = await supabase
+          .from("brands")
+          .select("*")
+          .eq("active", true)
+          .order("position", { ascending: true });
+
+        if (!error && data && data.length > 0) {
+          data.forEach((b) => { brandNameBySlug[b.slug] = b.name; });
+        }
+      } catch {
+        // silently fall back to no brand labels
+      }
+
+      try {
+        const { data, error } = await supabase
           .from("products")
           .select("*")
           .eq("active", true)
@@ -63,6 +78,7 @@ export default function Catalog() {
           name: p.name,
           category: categoryNameBySlug[p.category ?? ""] ?? p.category ?? "",
           categorySlug: p.category,
+          brand: brandNameBySlug[p.brand ?? ""] ?? p.brand ?? null,
           desc: p.description ?? "",
           price: formatPrice(p.price),
           img: p.image_url ?? "",

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Outlet, NavLink, useNavigate, useLocation } from "react-router-dom";
-import { LayoutDashboard, Package, Tag, MessageSquare, LogOut, Sparkles, ChevronDown } from "lucide-react";
+import { LayoutDashboard, Package, Tag, Award, MessageSquare, LogOut, Sparkles, ChevronDown } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
 const navItems = [
@@ -10,7 +10,10 @@ const navItems = [
     label: "Productos",
     icon: Package,
     end: true,
-    children: [{ to: "/admin/products/categories", label: "Categorías", icon: Tag }],
+    children: [
+      { to: "/admin/products/categories", label: "Categorías", icon: Tag },
+      { to: "/admin/products/brands", label: "Marcas", icon: Award },
+    ],
   },
   { to: "/admin/contacts", label: "Mensajes", icon: MessageSquare, end: false },
 ];

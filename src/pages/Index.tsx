@@ -21,7 +21,7 @@ import { toast } from "sonner";
 import { supabase } from "@/lib/supabase";
 import { whatsappLink } from "@/lib/whatsapp";
 import { CATEGORY_LABELS, formatPrice, type DisplayProduct } from "@/lib/format";
-import { fallbackProducts, fallbackCategories, type DisplayCategory } from "@/lib/fallbackData";
+import { fallbackProducts, fallbackCategories, fallbackBrands, type DisplayCategory } from "@/lib/fallbackData";
 import { Navbar } from "@/components/site/Navbar";
 import { Footer } from "@/components/site/Footer";
 import { WhatsAppFloat } from "@/components/site/WhatsAppFloat";
@@ -34,11 +34,6 @@ const benefits = [
   { icon: MessageCircle, title: "Consultas por WhatsApp", desc: "Respondemos rápido para que no pierdas tiempo esperando." },
   { icon: Shield, title: "Compra confiable", desc: "Productos originales con garantía y atención postventa." },
   { icon: Clock, title: "Fragancias para cada ocasión", desc: "Para el trabajo, una noche especial, el día a día o un regalo." },
-];
-
-const brands = [
-  "Dior", "Chanel", "YSL", "Lancôme", "Versace", "Carolina Herrera",
-  "Hugo Boss", "Armani", "Burberry", "Montale", "Al Haramain", "Swiss Arabian",
 ];
 
 const promos = [
@@ -69,13 +64,16 @@ export default function Index() {
   const [contactForm, setContactForm] = useState({ name: "", phone: "", message: "" });
   const [displayProducts, setDisplayProducts] = useState<DisplayProduct[]>(fallbackProducts);
   const [displayCategories, setDisplayCategories] = useState<DisplayCategory[]>(fallbackCategories);
+  const [displayBrands, setDisplayBrands] = useState<string[]>(fallbackBrands);
 
   // Fetch active categories (for the "Explorá la colección" mosaic and to label
-  // product categories) and featured products from Supabase. Falls back to
-  // hardcoded data if either fetch fails or comes back empty.
+  // product categories), active brands (for the "Las mejores marcas" tag list
+  // and to label products), and featured products from Supabase. Falls back to
+  // hardcoded data if any fetch fails or comes back empty.
   useEffect(() => {
-    async function loadCategoriesAndProducts() {
+    async function loadCategoriesBrandsAndProducts() {
       let categoryNameBySlug: Record<string, string> = { ...CATEGORY_LABELS };
+      let brandNameBySlug: Record<string, string> = {};
 
       try {
         const { data, error } = await supabase
@@ -102,6 +100,21 @@ export default function Index() {
 
       try {
         const { data, error } = await supabase
+          .from("brands")
+          .select("*")
+          .eq("active", true)
+          .order("position", { ascending: true });
+
+        if (!error && data && data.length > 0) {
+          data.forEach((b) => { brandNameBySlug[b.slug] = b.name; });
+          setDisplayBrands(data.map((b) => b.name));
+        }
+      } catch {
+        // silently fall back to hardcoded brands
+      }
+
+      try {
+        const { data, error } = await supabase
           .from("products")
           .select("*")
           .eq("featured", true)
@@ -114,6 +127,7 @@ export default function Index() {
           code: p.code ?? null,
           name: p.name,
           category: categoryNameBySlug[p.category ?? ""] ?? p.category ?? "",
+          brand: brandNameBySlug[p.brand ?? ""] ?? p.brand ?? null,
           desc: p.description ?? "",
           price: formatPrice(p.price),
           img: p.image_url ?? "",
@@ -124,7 +138,7 @@ export default function Index() {
         // silently fall back to hardcoded products
       }
     }
-    loadCategoriesAndProducts();
+    loadCategoriesBrandsAndProducts();
   }, []);
 
   async function handleContact(e: React.FormEvent) {
@@ -324,7 +338,7 @@ export default function Index() {
           <h2 className="font-serif text-4xl sm:text-5xl">Las mejores marcas</h2>
         </motion.div>
         <motion.div className="flex flex-wrap justify-center gap-3" initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ duration: 0.8 }}>
-          {brands.map((brand) => (
+          {displayBrands.map((brand) => (
             <span key={brand} className="border border-border text-xs tracking-widest uppercase px-5 py-2.5 text-muted-foreground hover:text-foreground hover:border-foreground transition-colors cursor-default">
               {brand}
             </span>

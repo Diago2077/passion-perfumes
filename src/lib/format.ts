@@ -18,6 +18,8 @@ export type DisplayProduct = {
   name: string;
   category: string;
   categorySlug?: string | null;
+  brand?: string | null;
+  brandSlug?: string | null;
   desc: string;
   price: string;
   img: string;

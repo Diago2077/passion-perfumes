@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { supabase, type Database } from "@/lib/supabase";
 import { useProducts } from "@/hooks/useProducts";
 import { useCategories } from "@/hooks/useCategories";
+import { useBrands } from "@/hooks/useBrands";
 
 type Product = Database["public"]["Tables"]["products"]["Row"];
 type ProductInsert = Database["public"]["Tables"]["products"]["Insert"];
@@ -35,6 +36,7 @@ const EMPTY_FORM: ProductInsert = {
   description: "",
   price: null,
   category: "",
+  brand: "",
   image_url: "",
   featured: false,
   active: true,
@@ -46,6 +48,7 @@ export default function AdminProducts() {
     featuredOnly: false,
   });
   const { categories } = useCategories({ activeOnly: false });
+  const { brands } = useBrands({ activeOnly: false });
 
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<Product | null>(null);
@@ -55,6 +58,7 @@ export default function AdminProducts() {
   const [page, setPage] = useState(1);
 
   const [categoryFilter, setCategoryFilter] = useState("");
+  const [brandFilter, setBrandFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState<"all" | "active" | "inactive">("all");
   const [featuredFilter, setFeaturedFilter] = useState<"all" | "featured" | "not-featured">("all");
   const [dateFrom, setDateFrom] = useState("");
@@ -77,6 +81,7 @@ export default function AdminProducts() {
 
   const activeFilterCount =
     (categoryFilter ? 1 : 0) +
+    (brandFilter ? 1 : 0) +
     (statusFilter !== "all" ? 1 : 0) +
     (featuredFilter !== "all" ? 1 : 0) +
     (dateFrom ? 1 : 0) +
@@ -84,6 +89,7 @@ export default function AdminProducts() {
 
   function clearFilters() {
     setCategoryFilter("");
+    setBrandFilter("");
     setStatusFilter("all");
     setFeaturedFilter("all");
     setDateFrom("");
@@ -101,6 +107,9 @@ export default function AdminProducts() {
     }
     if (categoryFilter) {
       result = result.filter((p) => p.category === categoryFilter);
+    }
+    if (brandFilter) {
+      result = result.filter((p) => p.brand === brandFilter);
     }
     if (statusFilter !== "all") {
       result = result.filter((p) => (statusFilter === "active" ? p.active : !p.active));
@@ -138,14 +147,14 @@ export default function AdminProducts() {
     }
 
     return result;
-  }, [products, search, categoryFilter, statusFilter, featuredFilter, dateFrom, dateTo, sortBy]);
+  }, [products, search, categoryFilter, brandFilter, statusFilter, featuredFilter, dateFrom, dateTo, sortBy]);
 
   const totalPages = Math.max(1, Math.ceil(filteredProducts.length / PAGE_SIZE));
   const paginatedProducts = filteredProducts.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
   useEffect(() => {
     setPage(1);
-  }, [search, categoryFilter, statusFilter, featuredFilter, dateFrom, dateTo, sortBy]);
+  }, [search, categoryFilter, brandFilter, statusFilter, featuredFilter, dateFrom, dateTo, sortBy]);
 
   useEffect(() => {
     if (page > totalPages) setPage(totalPages);
@@ -165,6 +174,7 @@ export default function AdminProducts() {
       description: product.description ?? "",
       price: product.price,
       category: product.category ?? "",
+      brand: product.brand ?? "",
       image_url: product.image_url ?? "",
       featured: product.featured,
       active: product.active,
@@ -186,6 +196,7 @@ export default function AdminProducts() {
       ...form,
       price: form.price ? Number(form.price) : null,
       description: form.description || null,
+      brand: form.brand || null,
       image_url: form.image_url || null,
     };
 
@@ -224,6 +235,10 @@ export default function AdminProducts() {
 
   function categoryLabel(cat: string | null) {
     return categories.find((c) => c.slug === cat)?.name ?? cat ?? "—";
+  }
+
+  function brandLabel(brand: string | null) {
+    return brands.find((b) => b.slug === brand)?.name ?? brand ?? "—";
   }
 
   function formatDate(iso: string) {
@@ -287,6 +302,19 @@ export default function AdminProducts() {
                   <option value="">Todas</option>
                   {categories.map((c) => (
                     <option key={c.slug} value={c.slug}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-1.5">
+                <Label className="text-xs tracking-widest uppercase text-muted-foreground">Marca</Label>
+                <select
+                  value={brandFilter}
+                  onChange={(e) => setBrandFilter(e.target.value)}
+                  className="flex h-9 w-full rounded-sm border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                >
+                  <option value="">Todas</option>
+                  {brands.map((b) => (
+                    <option key={b.slug} value={b.slug}>{b.name}</option>
                   ))}
                 </select>
               </div>
@@ -441,6 +469,24 @@ export default function AdminProducts() {
                 </div>
               </div>
               <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs tracking-widest uppercase text-muted-foreground">Marca</Label>
+                  <Link to="/admin/products/brands" className="text-[11px] text-muted-foreground hover:text-foreground underline">
+                    Gestionar
+                  </Link>
+                </div>
+                <select
+                  value={form.brand ?? ""}
+                  onChange={(e) => setForm({ ...form, brand: e.target.value })}
+                  className="flex h-9 w-full rounded-sm border border-input bg-transparent px-3 py-1 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                >
+                  <option value="">Sin marca</option>
+                  {brands.map((b) => (
+                    <option key={b.slug} value={b.slug}>{b.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div className="space-y-1.5">
                 <Label className="text-xs tracking-widest uppercase text-muted-foreground">URL de imagen</Label>
                 <Input value={form.image_url ?? ""} onChange={(e) => setForm({ ...form, image_url: e.target.value })} placeholder="https://..." />
               </div>
@@ -494,6 +540,7 @@ export default function AdminProducts() {
                 <th className="text-left px-4 py-3 text-xs tracking-widest uppercase text-muted-foreground font-medium">Producto</th>
                 <th className="text-left px-4 py-3 text-xs tracking-widest uppercase text-muted-foreground font-medium hidden lg:table-cell">Código</th>
                 <th className="text-left px-4 py-3 text-xs tracking-widest uppercase text-muted-foreground font-medium hidden md:table-cell">Categoría</th>
+                <th className="text-left px-4 py-3 text-xs tracking-widest uppercase text-muted-foreground font-medium hidden lg:table-cell">Marca</th>
                 <th className="text-left px-4 py-3 text-xs tracking-widest uppercase text-muted-foreground font-medium hidden sm:table-cell">Precio</th>
                 <th className="text-left px-4 py-3 text-xs tracking-widest uppercase text-muted-foreground font-medium hidden lg:table-cell">Creado</th>
                 <th className="text-left px-4 py-3 text-xs tracking-widest uppercase text-muted-foreground font-medium">Estado</th>
@@ -525,6 +572,9 @@ export default function AdminProducts() {
                   </td>
                   <td className="px-4 py-3 text-muted-foreground hidden md:table-cell">
                     {categoryLabel(product.category)}
+                  </td>
+                  <td className="px-4 py-3 text-muted-foreground hidden lg:table-cell">
+                    {brandLabel(product.brand)}
                   </td>
                   <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">
                     {product.price ? `₲ ${product.price.toLocaleString("es-PY")}` : "—"}

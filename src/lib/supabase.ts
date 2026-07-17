@@ -19,6 +19,7 @@ export type Database = {
           description: string | null;
           price: number | null;
           category: string | null;
+          brand: string | null;
           image_url: string | null;
           featured: boolean;
           active: boolean;
@@ -31,6 +32,7 @@ export type Database = {
           description?: string | null;
           price?: number | null;
           category?: string | null;
+          brand?: string | null;
           image_url?: string | null;
           featured?: boolean;
           active?: boolean;
@@ -77,6 +79,25 @@ export type Database = {
           created_at?: string;
         };
         Update: Partial<Database["public"]["Tables"]["categories"]["Insert"]>;
+      };
+      brands: {
+        Row: {
+          id: string;
+          name: string;
+          slug: string;
+          position: number;
+          active: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name: string;
+          slug: string;
+          position?: number;
+          active?: boolean;
+          created_at?: string;
+        };
+        Update: Partial<Database["public"]["Tables"]["brands"]["Insert"]>;
       };
     };
   };

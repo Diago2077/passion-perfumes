@@ -27,6 +27,9 @@ export function ProductCard({ p, delay = 0 }: { p: DisplayProduct; delay?: numbe
             </span>
           )}
         </div>
+        {p.brand && (
+          <p className="text-[11px] tracking-widest uppercase text-muted-foreground mb-2">{p.brand}</p>
+        )}
         <p className="text-xs text-muted-foreground leading-relaxed mb-3">{p.desc}</p>
         <div className="mt-auto">
           {p.price && <p className="text-sm font-medium mb-3">{p.price}</p>}
