@@ -60,7 +60,7 @@ export const fallbackProducts: DisplayProduct[] = [
     brand: "Chanel",
     brandSlug: "chanel",
     desc: "Fragancia floral con notas de rosa damascena, jazmín y sándalo blanco.",
-    price: "₲ 8.500",
+    price: "US$ 85.00",
     img: "https://images.unsplash.com/photo-1595425959632-34f2822322ce?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=400&q=80",
   },
   {
@@ -71,7 +71,7 @@ export const fallbackProducts: DisplayProduct[] = [
     brand: "Al Haramain",
     brandSlug: "al-haramain",
     desc: "Fragancia oriental intensa con oud, ámbar y especias exóticas.",
-    price: "₲ 12.900",
+    price: "US$ 129.00",
     img: "https://images.unsplash.com/photo-1611146264101-358a3b387eee?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=400&q=80",
   },
   {
@@ -82,7 +82,7 @@ export const fallbackProducts: DisplayProduct[] = [
     brand: "Hugo Boss",
     brandSlug: "hugo-boss",
     desc: "Fragancia amaderada con notas de vetiver, cuero y cedro.",
-    price: "₲ 9.200",
+    price: "US$ 92.00",
     img: "https://images.unsplash.com/photo-1598634222670-87c5f558119c?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=400&q=80",
   },
   {
@@ -93,7 +93,7 @@ export const fallbackProducts: DisplayProduct[] = [
     brand: "Versace",
     brandSlug: "versace",
     desc: "Seductor y envolvente, con notas de vainilla, musgo y pétalos de rosa.",
-    price: "₲ 10.400",
+    price: "US$ 104.00",
     img: "https://images.unsplash.com/photo-1594035910387-fea47794261f?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=400&q=80",
   },
   {
@@ -104,7 +104,7 @@ export const fallbackProducts: DisplayProduct[] = [
     brand: "Dior",
     brandSlug: "dior",
     desc: "Labial de larga duración con acabado satinado en tonos rojos y nude.",
-    price: "₲ 3.800",
+    price: "US$ 38.00",
     img: "https://images.unsplash.com/photo-1591360236480-4ed861025fa1?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=400&q=80",
   },
   {
@@ -115,7 +115,7 @@ export const fallbackProducts: DisplayProduct[] = [
     brand: "Armani",
     brandSlug: "armani",
     desc: "Fresco y dinámico, con notas cítricas, menta y madera de roble.",
-    price: "₲ 7.600",
+    price: "US$ 76.00",
     img: "https://images.unsplash.com/photo-1553699357-fdefb876c402?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&w=400&q=80",
   },
 ];

@@ -446,8 +446,8 @@ export default function AdminProducts() {
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                  <Label className="text-xs tracking-widest uppercase text-muted-foreground">Precio (₲)</Label>
-                  <Input type="number" value={form.price ?? ""} onChange={(e) => setForm({ ...form, price: e.target.value ? Number(e.target.value) : null })} placeholder="8500" />
+                  <Label className="text-xs tracking-widest uppercase text-muted-foreground">Precio (US$)</Label>
+                  <Input type="number" step="0.01" value={form.price ?? ""} onChange={(e) => setForm({ ...form, price: e.target.value ? Number(e.target.value) : null })} placeholder="85.00" />
                 </div>
                 <div className="space-y-1.5">
                   <div className="flex items-center justify-between">
@@ -577,7 +577,7 @@ export default function AdminProducts() {
                     {brandLabel(product.brand)}
                   </td>
                   <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">
-                    {product.price ? `₲ ${product.price.toLocaleString("es-PY")}` : "—"}
+                    {product.price != null ? `US$ ${product.price.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` : "—"}
                   </td>
                   <td className="px-4 py-3 text-muted-foreground hidden lg:table-cell">
                     {formatDate(product.created_at)}
