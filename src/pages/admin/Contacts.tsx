@@ -1,10 +1,14 @@
-import { useEffect, useState } from "react";
-import { MessageSquare, CheckCheck } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { MessageSquare, CheckCheck, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { supabase, type Database } from "@/lib/supabase";
 
 type ContactMessage = Database["public"]["Tables"]["contact_messages"]["Row"];
+
+const PAGE_SIZE = 10;
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleString("es-PY", {
@@ -19,6 +23,8 @@ function formatDate(iso: string) {
 export default function AdminContacts() {
   const [messages, setMessages] = useState<ContactMessage[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     async function fetchMessages() {
@@ -63,14 +69,42 @@ export default function AdminContacts() {
 
   const unreadCount = messages.filter((m) => !m.read).length;
 
+  const filteredMessages = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return messages;
+    return messages.filter(
+      (m) =>
+        m.name.toLowerCase().includes(q) ||
+        m.message.toLowerCase().includes(q) ||
+        (m.phone ?? "").toLowerCase().includes(q)
+    );
+  }, [messages, search]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredMessages.length / PAGE_SIZE));
+  const paginatedMessages = filteredMessages.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  useEffect(() => {
+    setPage(1);
+  }, [search]);
+
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [page, totalPages]);
+
   return (
     <div className="p-6 sm:p-8">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-6 gap-4 flex-wrap">
         <div>
           <h1 className="font-serif text-3xl mb-1">Mensajes de contacto</h1>
           <p className="text-sm text-muted-foreground">
-            {messages.length} mensajes
-            {unreadCount > 0 && ` — ${unreadCount} sin leer`}
+            {search ? (
+              `${filteredMessages.length} de ${messages.length} mensajes`
+            ) : (
+              <>
+                {messages.length} mensajes
+                {unreadCount > 0 && ` — ${unreadCount} sin leer`}
+              </>
+            )}
           </p>
         </div>
         {unreadCount > 0 && (
@@ -84,6 +118,16 @@ export default function AdminContacts() {
         )}
       </div>
 
+      <div className="relative mb-6 max-w-sm">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+        <Input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Buscar por nombre, teléfono o mensaje..."
+          className="pl-9"
+        />
+      </div>
+
       {loading ? (
         <div className="space-y-3">
           {[1, 2, 3].map((i) => (
@@ -95,9 +139,14 @@ export default function AdminContacts() {
           <MessageSquare className="w-10 h-10 mx-auto mb-3 opacity-30" />
           <p className="text-sm">No hay mensajes recibidos aún.</p>
         </div>
+      ) : filteredMessages.length === 0 ? (
+        <div className="text-center py-20 text-muted-foreground">
+          <Search className="w-10 h-10 mx-auto mb-3 opacity-30" />
+          <p className="text-sm">Ningún mensaje coincide con "{search}".</p>
+        </div>
       ) : (
         <div className="space-y-3">
-          {messages.map((msg) => (
+          {paginatedMessages.map((msg) => (
             <div
               key={msg.id}
               className={`border rounded-sm p-5 transition-colors ${
@@ -144,6 +193,38 @@ export default function AdminContacts() {
               <p className="text-sm text-muted-foreground leading-relaxed">{msg.message}</p>
             </div>
           ))}
+        </div>
+      )}
+
+      {!loading && filteredMessages.length > PAGE_SIZE && (
+        <div className="flex items-center justify-between mt-4">
+          <p className="text-xs text-muted-foreground">
+            Página {page} de {totalPages}
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={page <= 1}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              className="gap-1"
+            >
+              <ChevronLeft className="w-3.5 h-3.5" />
+              Anterior
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={page >= totalPages}
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              className="gap-1"
+            >
+              Siguiente
+              <ChevronRight className="w-3.5 h-3.5" />
+            </Button>
+          </div>
         </div>
       )}
     </div>

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Plus, Pencil, Trash2, Eye, EyeOff, Tag } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Plus, Pencil, Trash2, Eye, EyeOff, Tag, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -20,6 +20,8 @@ function slugify(text: string) {
     .replace(/(^-|-$)/g, "");
 }
 
+const PAGE_SIZE = 10;
+
 const EMPTY_FORM: CategoryInsert = {
   name: "",
   slug: "",
@@ -35,6 +37,27 @@ export default function AdminCategories() {
   const [editing, setEditing] = useState<Category | null>(null);
   const [form, setForm] = useState<CategoryInsert>(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
+  const [search, setSearch] = useState("");
+  const [page, setPage] = useState(1);
+
+  const filteredCategories = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return categories;
+    return categories.filter(
+      (c) => c.name.toLowerCase().includes(q) || c.slug.toLowerCase().includes(q)
+    );
+  }, [categories, search]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredCategories.length / PAGE_SIZE));
+  const paginatedCategories = filteredCategories.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
+
+  useEffect(() => {
+    setPage(1);
+  }, [search]);
+
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [page, totalPages]);
 
   function openCreate() {
     setEditing(null);
@@ -106,17 +129,29 @@ export default function AdminCategories() {
 
   return (
     <div className="p-6 sm:p-8">
-      <div className="flex items-center justify-between mb-8">
+      <div className="flex items-center justify-between mb-6 gap-4 flex-wrap">
         <div>
           <h1 className="font-serif text-3xl mb-1">Categorías</h1>
           <p className="text-sm text-muted-foreground">
-            {categories.length} categorías · usadas en el catálogo de productos y en "Explorá la colección"
+            {search
+              ? `${filteredCategories.length} de ${categories.length} categorías`
+              : `${categories.length} categorías · usadas en el catálogo de productos y en "Explorá la colección"`}
           </p>
         </div>
         <Button onClick={openCreate} className="gap-2">
           <Plus className="w-4 h-4" />
           Agregar
         </Button>
+      </div>
+
+      <div className="relative mb-6 max-w-sm">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground" />
+        <Input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Buscar por nombre o slug..."
+          className="pl-9"
+        />
       </div>
 
       {/* Form modal */}
@@ -196,6 +231,11 @@ export default function AdminCategories() {
           <Tag className="w-10 h-10 mx-auto mb-3 opacity-30" />
           <p className="text-sm">No hay categorías. ¡Creá la primera!</p>
         </div>
+      ) : filteredCategories.length === 0 ? (
+        <div className="text-center py-20 text-muted-foreground">
+          <Search className="w-10 h-10 mx-auto mb-3 opacity-30" />
+          <p className="text-sm">Ninguna categoría coincide con "{search}".</p>
+        </div>
       ) : (
         <div className="border border-border rounded-sm overflow-hidden">
           <table className="w-full text-sm">
@@ -209,7 +249,7 @@ export default function AdminCategories() {
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {categories.map((category) => (
+              {paginatedCategories.map((category) => (
                 <tr key={category.id} className="hover:bg-muted/20 transition-colors">
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
@@ -263,6 +303,38 @@ export default function AdminCategories() {
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {!loading && filteredCategories.length > PAGE_SIZE && (
+        <div className="flex items-center justify-between mt-4">
+          <p className="text-xs text-muted-foreground">
+            Página {page} de {totalPages}
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={page <= 1}
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              className="gap-1"
+            >
+              <ChevronLeft className="w-3.5 h-3.5" />
+              Anterior
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={page >= totalPages}
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              className="gap-1"
+            >
+              Siguiente
+              <ChevronRight className="w-3.5 h-3.5" />
+            </Button>
+          </div>
         </div>
       )}
     </div>
