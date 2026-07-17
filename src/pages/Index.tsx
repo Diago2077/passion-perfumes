@@ -412,7 +412,7 @@ export default function Index() {
             {displayProducts.map((p, i) => (
               <motion.div
                 key={p.name}
-                className="bg-card border border-border rounded-sm overflow-hidden group"
+                className="bg-card border border-border rounded-sm overflow-hidden group flex flex-col"
                 initial={{ opacity: 0, y: 30 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -424,7 +424,7 @@ export default function Index() {
                     {p.category}
                   </div>
                 </div>
-                <div className="p-5">
+                <div className="p-5 flex flex-col flex-1">
                   <div className="flex items-start justify-between gap-2 mb-1">
                     <h3 className="font-serif text-xl">{p.name}</h3>
                     {p.code && (
@@ -439,7 +439,7 @@ export default function Index() {
                     href={whatsappLink(`Hola! Quisiera consultar por el producto: ${p.name}`)}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="flex items-center justify-center gap-2 w-full bg-foreground text-background text-xs tracking-wider uppercase py-2.5 rounded-sm hover:opacity-80 transition-opacity cursor-pointer"
+                    className="mt-auto flex items-center justify-center gap-2 w-full bg-foreground text-background text-xs tracking-wider uppercase py-2.5 rounded-sm hover:opacity-80 transition-opacity cursor-pointer"
                   >
                     <MessageCircle className="w-3.5 h-3.5" />
                     Consultar
